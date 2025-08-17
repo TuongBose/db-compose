@@ -62,7 +62,7 @@ docker-compose up -d
 - **Root Username**: root
 - **Root Password**: abcd@1234
 - **Default Database**: mydb
-- **Admin Tool**: phpMyAdmin at http://localhost:8080
+- **Admin Tool**: phpMyAdmin at http://localhost:8100
 
 ### Microsoft SQL Server
 - **Host**: localhost
