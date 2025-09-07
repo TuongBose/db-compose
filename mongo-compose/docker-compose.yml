@@ -1,6 +1,6 @@
 services:
-  mongodb-container:
-    container_name: mongodb-container
+  mongodb:
+    container_name: mongodb
     image: mongo:latest
     ports:
       - "${MONGO_PORT}:27017"
@@ -21,7 +21,7 @@ services:
     ports:
       - "${ME_CONFIG_PORT}:8081"
     depends_on:
-      - mongodb-container
+      - mongodb
     environment:
       - ME_CONFIG_MONGODB_SERVER=${ME_CONFIG_MONGODB_SERVER}
       - ME_CONFIG_MONGODB_PORT=${ME_CONFIG_MONGODB_PORT}
