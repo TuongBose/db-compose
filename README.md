@@ -8,6 +8,7 @@ This repository contains Docker Compose configurations for running multiple data
 - **MySQL** with phpMyAdmin
 - **Microsoft SQL Server**
 - **MongoDB** with Mongo Express
+- **Cassandra**
 
 ## How to Use
 
@@ -45,6 +46,10 @@ docker-compose up -d
 # For MongoDB
 cd mongo-compose
 docker-compose up -d
+
+# For Cassandra
+cd cassandra-compose
+docker-compose up -d
 ```
 
 ## Connection Information
@@ -76,6 +81,13 @@ docker-compose up -d
 - **Admin Username**: root
 - **Admin Password**: PassWord
 - **Admin Tool**: Mongo Express at http://localhost:8081
+
+### Apache Cassandra
+- **Host**: localhost  
+- **Port**: 9042  
+- **Cluster Name**: Test Cluster (default)  
+- **Admin Tool**: No built-in web UI (you can use DataStax DevCenter, TablePlus, or other third-party tools if needed).  
+- **Default CLI Tool**: `cqlsh`
 
 ## Accessing Containers and Using Databases via Command Line
 
@@ -150,6 +162,24 @@ To access the MongoDB container and use the `mongo` command-line tool:
    - Use the admin username `root` and password `PassWord` when prompted.
    - You can now run MongoDB commands like `show dbs` to list databases or `use mydb` to switch to a database.
 
+### Apache Cassandra
+To access the Cassandra container and use the `cqlsh` command-line tool:
+
+1. **Access the container**:
+   ```bash
+   docker exec -it <cassandra_container_name> bash
+   ```
+   Replace `<cassandra_container_name>` with the name of your Cassandra container (e.g., `cassandra-container` or check using `docker ps`).
+
+2. **Connect to Cassandra**:
+   ```bash
+   cqlsh
+   ```
+
+   * Default port: `9042`
+   * Cluster: `Test Cluster` (default)
+   * No password is required for the default setup unless you enable authentication.
+
 ### Notes
 - To find the container names, run `docker ps` to list running containers.
 - If you prefer not to enter the container, you can run the database client commands directly from the host using `docker exec`. For example:
@@ -157,3 +187,4 @@ To access the MongoDB container and use the `mongo` command-line tool:
   - MySQL: `docker exec -it <mysql_container_name> mysql -u root -p`
   - SQL Server: `docker exec -it <mssql_container_name> /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P abcd@1234`
   - MongoDB: `docker exec -it <mongo_container_name> mongo -u root -p PassWord`
+  - Cassandra: `docker exec -it <cassandra_container_name> cqlsh`

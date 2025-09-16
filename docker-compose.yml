@@ -117,6 +117,27 @@ services:
       - mongo-network
     restart: unless-stopped
 
+  # Cassandra
+  cassandra-container:
+    container_name: cassandra-container
+    image: cassandra:4.1
+    environment:
+      CASSANDRA_CLUSTER_NAME: ${CASSANDRA_CLUSTER_NAME}
+      CASSANDRA_DC: ${CASSANDRA_DC}
+      CASSANDRA_RACK: ${CASSANDRA_RACK}
+      CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
+      CASSANDRA_NUM_TOKENS: 256
+      CASSANDRA_PASSWORD_SEEDER: "true"
+      CASSANDRA_USER: ${CASSANDRA_USER}
+      CASSANDRA_PASSWORD: ${CASSANDRA_PASSWORD}
+    ports:
+      - "${CASSANDRA_PORT}:9042"
+    volumes:
+      - cassandra_data:/var/lib/cassandra
+    networks:
+      - cassandra-network
+    restart: unless-stopped
+
 networks:
   postgres-network:
     driver: bridge
@@ -126,6 +147,8 @@ networks:
     driver: bridge
   mongo-network:
     driver: bridge
+  cassandra-network:
+    driver: bridge
 
 volumes:
   postgres_data:
@@ -133,3 +156,4 @@ volumes:
   mysql_data:
   mssql_data:
   mongodb_data:
+  cassandra_data:
