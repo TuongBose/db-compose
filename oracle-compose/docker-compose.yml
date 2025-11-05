@@ -1,0 +1,20 @@
+services:
+  oracle-container:
+    container_name: oracle-container
+    image: gvenzl/oracle-xe:21-slim
+    ports:
+      - "${ORACLE_PORT}:1521"
+    environment:
+      ORACLE_PASSWORD: ${ORACLE_PASSWORD}
+    volumes:
+      - oracle:/opt/oracle/oradata
+    networks:
+      - oracle
+    restart: unless-stopped
+
+networks:
+  oracle:
+    driver: bridge
+
+volumes:
+  oracle:

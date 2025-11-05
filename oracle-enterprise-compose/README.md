@@ -1,0 +1,296 @@
+# Oracle Database Enterprise 21c – Docker Compose Setup
+
+This repository provides a **Docker Compose configuration** to run an **Oracle Database Enterprise Edition 21c** instance using the **official Oracle Container Registry image**.
+
+---
+
+## Requirements
+* [Docker](https://docs.docker.com/get-docker/)
+* [Docker Compose](https://docs.docker.com/compose/)
+* Internet connection (to pull Oracle image)
+* A valid [Oracle Account](https://container-registry.oracle.com)
+* Docker
+* Docker Compose
+* Internet connection (to download the image)
+* A terminal to run the commands
+* Basic knowledge of Docker and Docker Compose
+* Basic knowledge of SQL and Oracle Database
+* Basic knowledge of Linux commands
+
+---
+
+## Setup Instructions
+
+### **1. Create an Oracle Account**
+
+1. Go to [https://container-registry.oracle.com](https://container-registry.oracle.com)
+2. Click **Sign Up** if you don’t already have an account.
+3. Complete the registration and verify your email address.
+4. Log in again to the Oracle Container Registry.
+
+---
+
+### **2. Accept the Oracle Database License**
+
+Before pulling the image, you must accept Oracle’s license terms.
+
+1. Go to [https://container-registry.oracle.com](https://container-registry.oracle.com)
+2. Search for `database/enterprise`
+3. Click on **database/enterprise** (Oracle Database Enterprise Edition).
+4. Scroll down to **License Agreement**.
+5. Click **Accept**.
+
+> 💡 If you skip this step, `docker pull` will fail with `401 Unauthorized`.
+
+---
+
+### **3. Log in to Oracle Container Registry**
+
+Use your Oracle Account credentials in Docker CLI:
+
+```bash
+docker login container-registry.oracle.com
+```
+
+* **Username:** Your Oracle account email
+* **Secret Key:** Your Secret Key
+
+`Your secret key is your Auth Token.`
+
+You should see:
+
+```
+Login Succeeded
+```
+
+---
+
+### **4. Pull the Oracle Database Image**
+
+Once logged in successfully:
+
+```bash
+docker pull container-registry.oracle.com/database/enterprise:21.3.0.0
+```
+
+> 🏷️ You can check other available tags at
+> [Oracle Database Enterprise Repository](https://container-registry.oracle.com/pls/apex/f?p=113:4:0::NO:4:P4_REPOSITORY,AI_REPOSITORY_NAME,P4_REPOSITORY_NAME:database,enterprise,enterprise)
+
+---
+
+### **5. Configure the Environment**
+
+Edit the `.env` file as needed:
+
+```env
+# ========== Oracle Enterprise Configuration ==========
+ORACLE_PWD=MyPassword123
+ORACLE_SID=ORCLCDB
+ORACLE_PDB=ORCLPDB1
+ORACLE_CHARACTERSET=AL32UTF8
+
+# ========== Ports ==========
+ORACLE_PORT=1521
+ORACLE_WEB_PORT=5500
+```
+
+---
+
+### **6. Docker Compose Configuration**
+
+```yaml
+services:
+  oracle-enterprise-container:
+    container_name: oracle-enterprise-container
+    image: container-registry.oracle.com/database/enterprise:21.3.0.0
+    environment:
+      ORACLE_PWD: ${ORACLE_PWD}
+      ORACLE_SID: ${ORACLE_SID}
+      ORACLE_PDB: ${ORACLE_PDB}
+      ORACLE_CHARACTERSET: ${ORACLE_CHARACTERSET}
+    ports:
+      - "${ORACLE_PORT}:1521"
+      - "${ORACLE_WEB_PORT}:5500"
+    volumes:
+      - oracle-enterprise:/opt/oracle/oradata
+    networks:
+      - oracle-enterprise
+    restart: unless-stopped
+
+networks:
+  oracle-enterprise:
+    driver: bridge
+
+volumes:
+  oracle-enterprise:
+```
+
+---
+
+### **7. Start the Database**
+
+```bash
+docker compose up -d
+```
+
+Check container status:
+
+```bash
+docker ps
+```
+
+You should see `STATUS: Up (healthy)` after a few minutes.
+
+---
+
+### **8. Access Oracle Database**
+
+#### Using SQL*Plus inside the container:
+
+```bash
+docker exec -it oracle-enterprise-container sqlplus / as sysdba
+```
+
+#### Using a database client (SQL Developer, DBeaver, etc.):
+
+| Parameter        | Value           |
+| ---------------- | --------------- |
+| **Host**         | `localhost`     |
+| **Port**         | `1521`          |
+| **Service Name** | `ORCLPDB1`      |
+| **User**         | `sys`           |
+| **Password**     | `MyPassword123` |
+| **Role**         | `SYSDBA`        |
+
+---
+
+### **9. Access Oracle Enterprise Manager Express**
+
+After a few minutes (once the web service is up):
+
+🔗 [https://localhost:5500/em](https://localhost:5500/em)
+
+| Field                 | Value           |
+| --------------        | --------------- |
+| **Username**          | `SYS`           |
+| **Password**          | `MyPassword123` |
+| **Container Name**    | `ORCLPDB1`      |
+
+> ⏳ It might take 3–5 minutes for EM Express to start after container creation.
+
+---
+
+### **10. Manage Containers**
+
+Stop the container:
+
+```bash
+docker compose down
+```
+
+Restart it:
+
+```bash
+docker compose up -d
+```
+
+Remove containers and volumes:
+
+```bash
+docker compose down -v
+```
+
+Prune unused volumes:
+
+```bash
+docker volume prune
+```
+
+---
+
+## Example SQL Commands
+
+```sql
+-- Create a new user
+CREATE USER shopapp IDENTIFIED BY shop123;
+
+-- Grant privileges
+GRANT CONNECT, RESOURCE TO shopapp;
+
+-- Create a sample table
+CREATE TABLE employees (
+    id NUMBER GENERATED BY DEFAULT AS IDENTITY,
+    name VARCHAR2(100),
+    position VARCHAR2(50),
+    salary NUMBER,
+    PRIMARY KEY (id)
+);
+
+-- Insert data
+INSERT INTO employees (name, position, salary)
+VALUES ('John Doe', 'Manager', 1200);
+
+-- Query data
+SELECT * FROM employees;
+```
+
+---
+
+## Connection Examples
+
+### Java (JDBC)
+
+```java
+String url = "jdbc:oracle:thin:@localhost:1521/ORCLPDB1";
+String user = "shopapp";
+String password = "shop123";
+
+Connection conn = DriverManager.getConnection(url, user, password);
+```
+
+### Python (cx_Oracle)
+
+```python
+import cx_Oracle
+
+dsn = cx_Oracle.makedsn("localhost", 1521, service_name="ORCLPDB1")
+connection = cx_Oracle.connect(user="shopapp", password="shop123", dsn=dsn)
+```
+
+### Node.js (oracledb)
+
+```javascript
+const connection = await oracledb.getConnection({
+  user: "shopapp",
+  password: "shop123",
+  connectString: "localhost:1521/ORCLPDB1"
+});
+```
+
+---
+
+## Notes
+
+* This setup uses the **official Oracle Database Enterprise Edition 21c image**.
+* You must **accept Oracle’s license** before pulling the image.
+* Data is persisted in a Docker volume named `oracle-enterprise`.
+* EM Express runs at `https://localhost:5500/em`.
+* Default system user: `sys / MyPassword123`.
+* Custom user example: `shopapp / shop123`.
+* Check logs:
+
+  ```bash
+  docker logs -f oracle-enterprise-container
+  ```
+
+---
+
+Would you like me to also include a **ready-to-run PowerShell script (`setup-oracle.ps1`)** that automatically:
+
+1. Logs in to Oracle Registry
+2. Pulls the image
+3. Runs `docker compose up -d`
+4. Waits until the database is healthy
+5. Shows connection info
+
+That would make the setup one-click on Windows. Would you like that added?

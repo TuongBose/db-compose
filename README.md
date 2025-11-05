@@ -9,6 +9,8 @@ This repository contains Docker Compose configurations for running multiple data
 - **Microsoft SQL Server**
 - **MongoDB** with Mongo Express
 - **Cassandra**
+- **Oracle**
+- **Neo4j** with Neo4j Browser & Bloom
 
 ## How to Use
 
@@ -50,6 +52,14 @@ docker-compose up -d
 # For Cassandra
 cd cassandra-compose
 docker-compose up -d
+
+# For Oracle
+cd oracle-compose
+docker-compose up -d
+
+# For Neo4j
+cd neo4j-compose
+docker-compose up -d
 ```
 
 ## Connection Information
@@ -88,6 +98,26 @@ docker-compose up -d
 - **Cluster Name**: Test Cluster (default)  
 - **Admin Tool**: No built-in web UI (you can use DataStax DevCenter, TablePlus, or other third-party tools if needed).  
 - **Default CLI Tool**: `cqlsh`
+
+### Oracle
+- **Host**: localhost  
+- **Port**: 1521   
+- **SID**: XEPDB1
+- **Username**: sys
+- **Password**: MyPassword123
+- **Admin Tool**: No built-in web UI (you can use DataStax DevCenter, TablePlus, or other third-party tools if needed).  
+- **Default CLI Tool**: `sqlplus`
+
+### Neo4j
+* **Host**: localhost
+* **HTTP Port**: 7474
+* **Bolt Port**: 7687
+* **Username**: neo4j
+* **Password**: 12345678
+* **Plugins Enabled**: APOC, Bloom *(Bloom requires license — optional)*
+* **Admin Tool**: Neo4j Browser at [http://localhost:7474](http://localhost:7474)
+* **Default Connection URI**: `neo4j://localhost:7687`
+* **Default CLI Tool**: `cypher-shell -u neo4j -p 12345678`
 
 ## Accessing Containers and Using Databases via Command Line
 
@@ -180,6 +210,49 @@ To access the Cassandra container and use the `cqlsh` command-line tool:
    * Cluster: `Test Cluster` (default)
    * No password is required for the default setup unless you enable authentication.
 
+### Oracle
+To access the Oracle container and use the `sqlplus` command-line tool:
+
+1. **Access the container**:
+   ```bash
+   docker exec -it <oracle_container_name> bash
+   ```
+   Replace `<oracle_container_name>` with the name of your Oracle container (e.g., `oracle-container` or check using `docker ps`).
+
+2. **Connect to Oracle**:
+   ```bash
+   sqlplus sys/MyPassword123@XEPDB1 as sysdba
+   ```
+
+   * Default port: `1521`
+   * You can now run SQL commands like `SELECT * FROM v$version;` to check the server version or `SELECT username FROM all_users;` to list schemas.
+
+### Neo4j
+To access the Neo4j container and use the Neo4j command-line tools or connect via the Neo4j Browser:
+
+1. **Access the container**:
+
+   ```bash
+   docker exec -it <neo4j_container_name> bash
+   ```
+
+   Replace `<neo4j_container_name>` with the name of your Neo4j container (e.g., `neo4j-container` or check using `docker ps`).
+
+2. **Connect to Neo4j using the command-line tool (`cypher-shell`)**:
+
+   ```bash
+   cypher-shell -u neo4j -p 12345678
+   ```
+
+   * This logs into the Neo4j database using the default username and password (`neo4j` / `12345678`).
+   * Once connected, you can run Cypher queries, for example:
+
+     ```cypher
+     SHOW DATABASES;
+     CREATE (n:Person {name: 'Alice'}) RETURN n;
+     MATCH (n) RETURN n;
+     ```
+
 ### Notes
 - To find the container names, run `docker ps` to list running containers.
 - If you prefer not to enter the container, you can run the database client commands directly from the host using `docker exec`. For example:
@@ -188,3 +261,5 @@ To access the Cassandra container and use the `cqlsh` command-line tool:
   - SQL Server: `docker exec -it <mssql_container_name> /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P abcd@1234`
   - MongoDB: `docker exec -it <mongo_container_name> mongo -u root -p PassWord`
   - Cassandra: `docker exec -it <cassandra_container_name> cqlsh`
+  - Oracle: `docker exec -it <oracle_container_name> sqlplus sys/MyPassword123@XEPDB1 as sysdba`
+  - Neo4j: `docker exec -it <neo4j_container_name> cypher-shell -u neo4j -p 12345678`

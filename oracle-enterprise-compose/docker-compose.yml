@@ -1,0 +1,24 @@
+services:
+  oracle-enterprise-container:
+    container_name: oracle-enterprise-container
+    image: container-registry.oracle.com/database/enterprise:21.3.0.0
+    environment:
+      ORACLE_PWD: ${ORACLE_PWD}
+      ORACLE_SID: ${ORACLE_SID}
+      ORACLE_PDB: ${ORACLE_PDB}
+      ORACLE_CHARACTERSET: ${ORACLE_CHARACTERSET}
+    ports:
+      - "${ORACLE_PORT}:1521"
+      - "${ORACLE_WEB_PORT}:5500"
+    volumes:
+      - oracle-enterprise:/opt/oracle/oradata
+    networks:
+      - oracle-enterprise
+    restart: unless-stopped
+
+networks:
+  oracle-enterprise:
+    driver: bridge
+
+volumes:
+  oracle-enterprise:
